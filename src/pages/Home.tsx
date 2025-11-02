@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { toast } from 'sonner';
 import MenuBar from '../components/MenuBar';
 import Dock from '../components/Dock';
 import Window from '../components/Window';
 import { useTheme } from '../hooks/useTheme';
 import NameSettings from '../components/NameSettings';
+import { SakuraContext } from '../App';
 
 // 应用类型定义
 interface App {
@@ -133,6 +134,7 @@ const getRandomColor = () => {
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const { sakuraActive, setSakuraActive } = useContext(SakuraContext);
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [activeAppId, setActiveAppId] = useState<string | null>(null);
   const [nextZIndex, setNextZIndex] = useState(1);
@@ -143,7 +145,7 @@ export default function Home() {
   });
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('default');
   const [showWallpaperDirInfo, setShowWallpaperDirInfo] = useState(false); // 控制壁纸目录信息显示
-   // 不需要名字设置相关的状态
+  // 不需要名字设置相关的状态
   
   // 桌面元素引用
   const desktopRef = useRef<HTMLDivElement>(null);
@@ -152,8 +154,18 @@ export default function Home() {
   const openApp = (app: App) => {
     setActiveAppId(app.id);
     
-      // 对于"心情便签"应用的特殊处理
-      if (app.name === '心情便签') {
+    // 对于"心情便签"应用的特殊处理
+    if (app.name === '心情便签' || app.id === 'love-notes') {
+      console.log('Opening love notes app, activating sakura effect');
+      // 立即激活樱花特效
+      setSakuraActive(true);
+      
+      // 设置30秒后自动停止樱花特效
+      setTimeout(() => {
+        console.log('Stopping sakura effect after 30 seconds');
+        setSakuraActive(false);
+      }, 30000);
+        
         // 统计已有的"心情便签"窗口数量
         const loveNoteWindowsCount = windows.filter(w => 
           w.title === '心情便签' && !w.isMinimized
