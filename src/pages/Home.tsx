@@ -29,12 +29,12 @@ interface Wallpaper {
     { id: 'finder', name: 'Finder', iconClass: 'fa-brands fa-apple', iconColor: 'white' },
     { id: 'safari', name: 'Safari', iconClass: 'fa-brands fa-safari', iconColor: 'blue-500' },
     { id: 'mail', name: 'Mail', iconClass: 'fa-solid fa-envelope', iconColor: 'red-500' },
-     { id: 'calendar', name: 'Calendar', iconClass: 'fa-solid fa-calendar', iconColor: 'orange-500' },
     { id: 'photos', name: 'Photos', iconClass: 'fa-solid fa-images', iconColor: 'purple-500' },
     { id: 'music', name: 'Music', iconClass: 'fa-brands fa-spotify', iconColor: 'green-500' },
     { id: 'terminal', name: 'Terminal', iconClass: 'fa-solid fa-terminal', iconColor: 'green-400' },
-     { id: 'love-notes', name: '心情便签', iconClass: 'fa-solid fa-heart', iconColor: 'rose-500' },
-      { id: 'notes', name: '记事本', iconClass: 'fa-solid fa-note-sticky', iconColor: 'yellow-500' },
+    { id: 'notes', name: '记事本', iconClass: 'fa-solid fa-note-sticky', iconColor: 'yellow-500' },
+    { id: 'settings', name: '设置', iconClass: 'fa-solid fa-gear', iconColor: 'gray-400' },
+    { id: 'love-notes', name: '心情便签', iconClass: 'fa-solid fa-heart', iconColor: 'rose-500' },
   ];
 
 // 壁纸选项数据
@@ -145,6 +145,8 @@ export default function Home() {
   });
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('default');
   const [showWallpaperDirInfo, setShowWallpaperDirInfo] = useState(false); // 控制壁纸目录信息显示
+  const [sakuraEffectEnabled, setSakuraEffectEnabled] = useState(true); // 控制樱花特效开关
+  const [showSettings, setShowSettings] = useState(false); // 控制设置窗口显示
   // 不需要名字设置相关的状态
   
   // 桌面元素引用
@@ -154,17 +156,29 @@ export default function Home() {
   const openApp = (app: App) => {
     setActiveAppId(app.id);
     
+    // 对于"设置"应用的处理
+    if (app.id === 'settings') {
+      setShowSettings(true);
+      return;
+    }
+    
     // 对于"心情便签"应用的特殊处理
     if (app.name === '心情便签' || app.id === 'love-notes') {
-      console.log('Opening love notes app, activating sakura effect');
-      // 立即激活樱花特效
-      setSakuraActive(true);
+      console.log('Opening love notes app');
       
-      // 设置30秒后自动停止樱花特效
-      setTimeout(() => {
-        console.log('Stopping sakura effect after 30 seconds');
-        setSakuraActive(false);
-      }, 30000);
+      // 只有在樱花特效开启时才激活
+      if (sakuraEffectEnabled) {
+        console.log('Activating sakura effect');
+        setSakuraActive(true);
+        
+        // 设置30秒后自动停止樱花特效
+        setTimeout(() => {
+          console.log('Stopping sakura effect after 30 seconds');
+          setSakuraActive(false);
+        }, 30000);
+      } else {
+        console.log('Sakura effect is disabled in settings');
+      }
         
         // 统计已有的"心情便签"窗口数量
         const loveNoteWindowsCount = windows.filter(w => 
@@ -558,6 +572,44 @@ export default function Home() {
        {showWallpaperDirInfo && (
          <div className="wallpaper-directory-info animate-fade-in">
            预设壁纸存放在: src/assets/images/wallpapers/
+         </div>
+       )}
+       
+       {/* 设置窗口 */}
+       {showSettings && (
+         <div className={`fixed inset-0 flex items-center justify-center z-50 ${theme === 'dark' ? 'bg-black bg-opacity-50' : 'bg-white bg-opacity-50'}`}>
+           <div className={`w-80 rounded-lg shadow-xl ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
+             <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+               <h3 className="font-medium">设置</h3>
+               <button 
+                 onClick={() => setShowSettings(false)} 
+                 className="text-gray-400 hover:text-white"
+               >
+                 <i className="fa-solid fa-times"></i>
+               </button>
+             </div>
+             <div className="p-4">
+               <div className="flex items-center justify-between py-3 border-b border-gray-700">
+                 <label className="flex items-center">
+                   <i className="fa-solid fa-heart mr-2 text-rose-500"></i>
+                   心情便签樱花特效
+                 </label>
+                 <label className="relative inline-flex items-center cursor-pointer">
+                   <input 
+                     type="checkbox" 
+                     checked={sakuraEffectEnabled} 
+                     onChange={(e) => setSakuraEffectEnabled(e.target.checked)}
+                     className="sr-only peer"
+                   />
+                   <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-rose-500 transition-colors"></div>
+                   <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                 </label>
+               </div>
+               <div className="mt-4 text-gray-400 text-sm">
+                 关闭樱花特效可以在便签增多时提高性能
+               </div>
+             </div>
+           </div>
          </div>
        )}
      </div>
